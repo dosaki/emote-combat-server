@@ -1,0 +1,7 @@
+create_table("character_sheet_entries") {
+	t.Column("id", "uuid", {"primary": true})
+	t.Column("character_id", "uuid", {})
+	t.Column("skill_id", "uuid", {})
+	t.Column("value", "integer", {})
+	t.Column("note", "text", {})
+}

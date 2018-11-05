@@ -1,0 +1,1 @@
+add_column("skills", "cost", "integer", {default:3})

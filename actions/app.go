@@ -1,17 +1,16 @@
 package actions
 
 import (
+	"github.com/dosaki/owl_power_server/models"
 	"github.com/gobuffalo/buffalo"
+	"github.com/gobuffalo/buffalo-pop/pop/popmw"
 	"github.com/gobuffalo/envy"
+	contenttype "github.com/gobuffalo/mw-contenttype"
 	forcessl "github.com/gobuffalo/mw-forcessl"
 	paramlogger "github.com/gobuffalo/mw-paramlogger"
-	"github.com/unrolled/secure"
-
-	"github.com/dosaki/owl_power_server/models"
-	"github.com/gobuffalo/buffalo-pop/pop/popmw"
-	contenttype "github.com/gobuffalo/mw-contenttype"
 	"github.com/gobuffalo/x/sessions"
 	"github.com/rs/cors"
+	"github.com/unrolled/secure"
 )
 
 // ENV is used to help switch settings based on where the
@@ -59,6 +58,34 @@ func App() *buffalo.App {
 
 		app.GET("/", HomeHandler)
 
+		app.GET("/players", PlayerList)          // List all
+		app.GET("/player/{id}", PlayerList)      // Read
+		app.POST("/player", PlayerCreate)        // New
+		app.PUT("/player/{id}", PlayerUpdate)    // Update
+		app.DELETE("/player/{id}", PlayerDelete) // Delete
+
+		app.GET("/characters", CharacterList)                             // List all
+		app.GET("/character/{id}", CharacterList)                         // Read
+		app.GET("/player/{player_id}/characters", CharacterList)          // Read
+		app.GET("/player/{player_id}/character/{id}", CharacterList)      // Read
+		app.POST("/player/{player_id}/character", CharacterCreate)        // New
+		app.PUT("/player/{player_id}/character/{id}", CharacterUpdate)    // Update
+		app.DELETE("/player/{player_id}/character/{id}", CharacterDelete) // Delete
+
+		app.GET("/skills", SkillList)                          // List all
+		app.GET("/skill/{id}", SkillList)                      // Read
+		app.GET("/skill/{parent_id}/subskills", SkillList)     // Read all subskills
+		app.GET("/skill/{parent_id}/subskill/{id}", SkillList) // Read all subskills
+		app.POST("/skill", SkillCreate)                        // New
+		app.PUT("/skill/{id}", SkillUpdate)                    // Update
+		app.DELETE("/skill/{id}", SkillDelete)                 // Delete
+
+		app.GET("/player/{player_id}/character/{character_id}/sheet_entries", SheetEntryList)         // List all
+		app.GET("/player/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryList)      // Read
+		app.POST("/player/{player_id}/character/{character_id}/sheet_entry", SheetEntryCreate)        // New
+		app.POST("/player/{player_id}/character/{character_id}/sheet_entries", SheetEntriesCreate)    // New
+		app.PUT("/player/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryUpdate)    // Update
+		app.DELETE("/player/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryDelete) // Delete
 	}
 
 	return app

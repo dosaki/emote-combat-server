@@ -1,0 +1,5 @@
+create_table("characters") {
+	t.Column("id", "uuid", {"primary": true})
+	t.Column("name", "text", {})
+	t.Column("player_id", "uuid", {})
+}
