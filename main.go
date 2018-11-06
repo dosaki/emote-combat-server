@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/dosaki/owl_power_server/actions"
+	"github.com/dosaki/emote_combat_server/actions"
 )
 
 // main is the starting point for your Buffalo application.

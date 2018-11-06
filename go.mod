@@ -1,1 +1,1 @@
-module github.com/dosaki/owl_power_server
+module github.com/dosaki/emote_combat_server

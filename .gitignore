@@ -9,6 +9,7 @@ node_modules/
 *-packr.go
 public/assets/
 owl_power_server
+emote_combat_server
 .vscode/
 .grifter/
 .env

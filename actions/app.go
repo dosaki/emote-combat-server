@@ -1,7 +1,7 @@
 package actions
 
 import (
-	"github.com/dosaki/owl_power_server/models"
+	"github.com/dosaki/emote_combat_server/models"
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/buffalo-pop/pop/popmw"
 	"github.com/gobuffalo/envy"
@@ -39,7 +39,7 @@ func App() *buffalo.App {
 			PreWares: []buffalo.PreWare{
 				cors.Default().Handler,
 			},
-			SessionName: "_owl_power_server_session",
+			SessionName: "_emote_combat_server_session",
 		})
 
 		// Automatically redirect to SSL

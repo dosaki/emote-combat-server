@@ -1,7 +1,7 @@
 package grifts
 
 import (
-	"github.com/dosaki/owl_power_server/actions"
+	"github.com/dosaki/emote_combat_server/actions"
 	"github.com/gobuffalo/buffalo"
 )
 

@@ -2,8 +2,8 @@
 # https://docs.docker.com/engine/userguide/eng-image/multistage-build/
 FROM gobuffalo/buffalo:v0.13.3 as builder
 
-RUN mkdir -p $GOPATH/src/github.com/dosaki/owl_power_server
-WORKDIR $GOPATH/src/github.com/dosaki/owl_power_server
+RUN mkdir -p $GOPATH/src/github.com/dosaki/emote_combat_server
+WORKDIR $GOPATH/src/github.com/dosaki/emote_combat_server
 
 ADD . .
 RUN go get $(go list ./... | grep -v /vendor/)

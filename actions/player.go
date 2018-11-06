@@ -3,8 +3,8 @@ package actions
 import (
 	"encoding/json"
 
-	"github.com/dosaki/owl_power_server/helpers"
-	"github.com/dosaki/owl_power_server/models"
+	"github.com/dosaki/emote_combat_server/helpers"
+	"github.com/dosaki/emote_combat_server/models"
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
 )
