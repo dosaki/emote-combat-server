@@ -8,6 +8,7 @@ import (
 	contenttype "github.com/gobuffalo/mw-contenttype"
 	forcessl "github.com/gobuffalo/mw-forcessl"
 	paramlogger "github.com/gobuffalo/mw-paramlogger"
+	tokenauth "github.com/gobuffalo/mw-tokenauth"
 	"github.com/gobuffalo/x/sessions"
 	"github.com/rs/cors"
 	"github.com/unrolled/secure"
@@ -58,19 +59,28 @@ func App() *buffalo.App {
 
 		app.GET("/", HomeHandler)
 
-		app.GET("/players", PlayerList)          // List all
-		app.GET("/player/{id}", PlayerList)      // Read
-		app.POST("/player", PlayerCreate)        // New
-		app.PUT("/player/{id}", PlayerUpdate)    // Update
-		app.DELETE("/player/{id}", PlayerDelete) // Delete
+		app.Use(tokenauth.New(tokenauth.Options{}))
 
-		app.GET("/characters", CharacterList)                             // List all
-		app.GET("/character/{id}", CharacterList)                         // Read
-		app.GET("/player/{player_id}/characters", CharacterList)          // Read
-		app.GET("/player/{player_id}/character/{id}", CharacterList)      // Read
-		app.POST("/player/{player_id}/character", CharacterCreate)        // New
-		app.PUT("/player/{player_id}/character/{id}", CharacterUpdate)    // Update
-		app.DELETE("/player/{player_id}/character/{id}", CharacterDelete) // Delete
+		app.Use(SetCurrentUser)
+		app.Use(Authorize)
+
+		app.GET("/player/{id}", UserList)   // Read
+		app.POST("/player", UsersCreate)    // New
+		app.PUT("/player/{id}", UserUpdate) // Update
+
+		app.POST("/signin", AuthCreate)
+		app.DELETE("/signout", AuthDestroy)
+
+		app.Middleware.Skip(Authorize, HomeHandler, UsersCreate, AuthCreate)
+
+		app.GET("/characters", CharacterList)                                 // List all
+		app.GET("/character/{id}", CharacterList)                             // Read
+		app.GET("/player/{player_id}/characters", CharacterList)              // Read
+		app.GET("/player/{player_id}/character/{id}", CharacterList)          // Read
+		app.POST("/player/{player_id}/character", CharacterCreate)            // New
+		app.PUT("/player/{player_id}/character/{id}", CharacterUpdate)        // Update
+		app.DELETE("/player/{player_id}/character/{id}", CharacterDelete)     // Delete
+		app.GET("/player/{player_id}/character/{id}/delete", CharacterDelete) // Delete
 
 		app.GET("/skills", SkillList)                          // List all
 		app.GET("/skill/{id}", SkillList)                      // Read

@@ -1,0 +1,1 @@
+add_column("skills", "starting_value", "integer", {default:0})

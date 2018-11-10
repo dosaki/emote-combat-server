@@ -36,7 +36,7 @@ func SkillCreate(c buffalo.Context) error {
 	skill.Cost = body.Cost
 
 	if tx.Create(&skill) == nil {
-		return c.Render(200, r.JSON(skill))
+		return c.Render(201, r.JSON(skill))
 	}
 	return c.Render(400, r.JSON(map[string]string{}))
 }
@@ -124,7 +124,7 @@ func SkillList(c buffalo.Context) error {
 	if perr != nil {
 		err = query.All(&skills)
 		if err == nil {
-			return c.Render(201, r.JSON(skills))
+			return c.Render(200, r.JSON(skills))
 		}
 	} else {
 		err = query.Where("id in (?)", uuid).All(&skills)
@@ -132,7 +132,7 @@ func SkillList(c buffalo.Context) error {
 			return c.Render(404, r.JSON(map[string]string{"message": "Skill(s) not found."}))
 		}
 		if err == nil {
-			return c.Render(201, r.JSON(skills[0]))
+			return c.Render(200, r.JSON(skills[0]))
 		}
 	}
 

@@ -24,7 +24,7 @@ func getCharacterBody(c buffalo.Context) models.Character {
 
 // CharacterCreate default implementation.
 func CharacterCreate(c buffalo.Context) error {
-	playerID, plerr := helpers.Param(c, "player_id")
+	userID, plerr := helpers.Param(c, "player_id")
 	if plerr != nil {
 		return c.Render(400, r.JSON(map[string]string{"message": "No player ID provided."}))
 	}
@@ -36,7 +36,7 @@ func CharacterCreate(c buffalo.Context) error {
 		panic("Unable to get connection")
 	}
 
-	playerUUID, puuiderr := uuid.FromString(playerID)
+	playerUUID, puuiderr := uuid.FromString(userID)
 	if puuiderr != nil {
 		return c.Render(400, r.JSON(map[string]string{"message": "Bad player UUID."}))
 	}
@@ -45,15 +45,33 @@ func CharacterCreate(c buffalo.Context) error {
 	character.Name = body.Name
 	character.PlayerID = playerUUID
 
-	players := []models.Player{}
-	err := models.DB.Where("id in (?)", body.PlayerID).All(&players)
+	users := []models.User{}
+	err := models.DB.Where("id = ?", body.PlayerID).All(&users)
 	if err != nil {
 		fmt.Println(err)
 		return c.Render(404, r.JSON(map[string]string{"message": "Unable to find associated player."}))
 	}
 
 	if tx.Create(&character) == nil {
-		return c.Render(200, r.JSON(character))
+
+		skills := []models.Skill{}
+		skillsErr := models.DB.All(&skills)
+
+		if skillsErr == nil {
+			for _, skill := range skills {
+				skillEntry := models.CharacterSheetEntry{
+					CharacterID: character.ID,
+					SkillID:     skill.ID,
+					Value:       skill.StartingValue,
+				}
+				if tx.Create(&skillEntry) != nil {
+					return c.Render(400, r.JSON(map[string]string{}))
+				}
+			}
+		} else {
+			return c.Render(400, r.JSON(map[string]string{}))
+		}
+		return c.Render(201, r.JSON(character))
 	}
 	return c.Render(400, r.JSON(map[string]string{}))
 }
@@ -65,13 +83,13 @@ func CharacterUpdate(c buffalo.Context) error {
 		return c.Render(400, r.JSON(map[string]string{"message": "No ID provided."}))
 	}
 
-	playerID, plerr := helpers.Param(c, "player_id")
+	userID, plerr := helpers.Param(c, "player_id")
 	if plerr != nil {
 		return c.Render(400, r.JSON(map[string]string{"message": "No player ID provided."}))
 	}
 
 	characters := []models.Character{}
-	err := models.DB.Where("player_id = ?", playerID).Where("id = ?", uuid).All(&characters)
+	err := models.DB.Where("player_id = ?", userID).Where("id = ?", uuid).All(&characters)
 	if err != nil {
 		return c.Render(500, r.JSON(map[string]string{"message": "Problem getting character."}))
 	}
@@ -89,8 +107,8 @@ func CharacterUpdate(c buffalo.Context) error {
 	character.Name = body.Name
 	character.PlayerID = body.PlayerID
 
-	players := []models.Player{}
-	aperr := models.DB.Where("id in (?)", body.PlayerID).All(&players)
+	users := []models.User{}
+	aperr := models.DB.Where("id = ?", body.PlayerID).All(&users)
 	if aperr != nil {
 		return c.Render(404, r.JSON(map[string]string{"message": "Unable to find associated player."}))
 	}
@@ -110,7 +128,7 @@ func CharacterDelete(c buffalo.Context) error {
 	}
 
 	characters := []models.Character{}
-	err := models.DB.Where("id in (?)", uuid).All(&characters)
+	err := models.DB.Where("id = ?", uuid).All(&characters)
 	if err != nil {
 		return c.Render(500, r.JSON(map[string]string{"message": "Problem getting character."}))
 	}
@@ -126,6 +144,16 @@ func CharacterDelete(c buffalo.Context) error {
 	character := characters[0]
 
 	if tx.Destroy(&character) == nil {
+		skillEntries := []models.CharacterSheetEntry{}
+		skillsErr := models.DB.Where("character_id = ?", character.ID).All(&skillEntries)
+		if skillsErr != nil {
+			return c.Render(500, r.JSON(map[string]string{"message": "Something went wrong while finding all the skill entries to delete."}))
+		}
+		for _, skillEntry := range skillEntries {
+			if tx.Destroy(&skillEntry) != nil {
+				return c.Render(500, r.JSON(map[string]string{"message": "Something went wrong while deleting all the skill entries."}))
+			}
+		}
 		return c.Render(201, r.JSON(map[string]string{}))
 	}
 
@@ -139,25 +167,25 @@ func CharacterList(c buffalo.Context) error {
 	var err error
 	var query *pop.Query
 
-	playerID, pierr := helpers.Param(c, "player_id")
+	userID, pierr := helpers.Param(c, "player_id")
 	if pierr != nil {
 		query = models.DB.Where("1=1")
 	} else {
-		query = models.DB.Where("player_id = ?", playerID)
+		query = models.DB.Where("player_id = ?", userID)
 	}
 
 	if perr != nil {
 		err = query.All(&characters)
 		if err == nil {
-			return c.Render(201, r.JSON(characters))
+			return c.Render(200, r.JSON(characters))
 		}
 	} else {
-		err = query.Where("id in (?)", uuid).All(&characters)
+		err = query.Where("id = ?", uuid).All(&characters)
 		if len(characters) == 0 {
 			return c.Render(404, r.JSON(map[string]string{"message": "Character not found."}))
 		}
 		if err == nil {
-			return c.Render(201, r.JSON(characters[0]))
+			return c.Render(200, r.JSON(characters[0]))
 		}
 	}
 

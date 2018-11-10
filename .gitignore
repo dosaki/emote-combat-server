@@ -13,3 +13,5 @@ emote_combat_server
 .vscode/
 .grifter/
 .env
+*.key
+*.key.pub

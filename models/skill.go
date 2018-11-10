@@ -18,6 +18,7 @@ type Skill struct {
 	Description   string    `json:"description" db:"description"`
 	ParentSkillID uuid.UUID `json:"parent_skill_id" db:"parent_skill_id"`
 	Cost          int       `json:"cost" db:"cost"`
+	StartingValue int       `json:"starting_value" db:"starting_value"`
 }
 
 // String is not required by pop and may be deleted

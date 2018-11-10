@@ -77,7 +77,7 @@ func SheetEntryCreate(c buffalo.Context) error {
 	body := getSheetEntryBody(c)
 	sheetEntry, err := createOne(c, body, characterID)
 	if err == nil {
-		return c.Render(200, r.JSON(sheetEntry))
+		return c.Render(201, r.JSON(sheetEntry))
 	}
 	return c.Render(400, r.JSON(map[string]string{"message": err.Error()}))
 }
@@ -241,7 +241,7 @@ func SheetEntryList(c buffalo.Context) error {
 	if perr != nil {
 		err = query.All(&sheetEntries)
 		if err == nil {
-			return c.Render(201, r.JSON(sheetEntries))
+			return c.Render(200, r.JSON(sheetEntries))
 		}
 	} else {
 		err = query.Where("id = ?", uuid).All(&sheetEntries)
@@ -249,7 +249,7 @@ func SheetEntryList(c buffalo.Context) error {
 			return c.Render(404, r.JSON(map[string]string{"message": "Sheet entry not found."}))
 		}
 		if err == nil {
-			return c.Render(201, r.JSON(sheetEntries[0]))
+			return c.Render(200, r.JSON(sheetEntries[0]))
 		}
 	}
 

@@ -95,6 +95,7 @@ CREATE TABLE `skills` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   `cost` int(11) NOT NULL DEFAULT '3',
+  `starting_value` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -108,4 +109,4 @@ CREATE TABLE `skills` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-11-05 22:30:22
+-- Dump completed on 2018-11-07 23:26:01
