@@ -62,9 +62,9 @@ func App() *buffalo.App {
 		player := app.Group("/player")
 		player.Use(RestrictedHandlerMiddleware)
 
-		player.GET("/{id}", UserList)    // Read
-		player.PUT("/{id}", UserUpdate)  // Update
-		app.POST("/player", UsersCreate) // New
+		player.GET("/{player_id}", UserList)   // Read
+		player.PUT("/{player_id}", UserUpdate) // Update
+		app.POST("/player", UsersCreate)       // New
 
 		app.GET("/characters", CharacterList)     // List all
 		app.GET("/character/{id}", CharacterList) // Read

@@ -61,7 +61,7 @@ func UsersCreate(c buffalo.Context) error {
 
 // UserUpdate default implementation.
 func UserUpdate(c buffalo.Context) error {
-	uuid, perr := helpers.Param(c, "id")
+	uuid, perr := helpers.Param(c, "player_id")
 	if perr != nil {
 		return c.Render(400, r.JSON(map[string]string{"message": "No ID provided."}))
 	}
@@ -89,7 +89,7 @@ func UserUpdate(c buffalo.Context) error {
 
 // UserList default implementation.
 func UserList(c buffalo.Context) error {
-	uuid, perr := helpers.Param(c, "id")
+	uuid, perr := helpers.Param(c, "player_id")
 	var err error
 
 	if perr != nil {
@@ -107,38 +107,4 @@ func UserList(c buffalo.Context) error {
 	}
 
 	return c.Render(500, r.JSON(map[string]string{"message": "Problem getting player(s)."}))
-}
-
-// SetCurrentUser attempts to find a user based on the current_user_id
-// in the session. If one is found it is set on the context.
-func SetCurrentUser(next buffalo.Handler) buffalo.Handler {
-	return func(c buffalo.Context) error {
-		if uid := c.Session().Get("current_user_id"); uid != nil {
-			u := &models.User{}
-			tx := c.Value("tx").(*pop.Connection)
-			err := tx.Find(u, uid)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-			c.Set("current_user", u)
-		}
-		return next(c)
-	}
-}
-
-// Authorize require a user be logged in before accessing a route
-func Authorize(next buffalo.Handler) buffalo.Handler {
-	return func(c buffalo.Context) error {
-		if uid := c.Session().Get("current_user_id"); uid == nil {
-			c.Session().Set("redirectURL", c.Request().URL.String())
-
-			err := c.Session().Save()
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
-			return c.Render(403, r.JSON(map[string]string{}))
-		}
-		return next(c)
-	}
 }
