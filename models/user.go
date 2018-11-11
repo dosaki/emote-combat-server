@@ -27,6 +27,14 @@ type User struct {
 	PasswordConfirmation string `json:"-" db:"-"`
 }
 
+// UserRegisterJSON - used to marshal the incoming JSON when registering a user
+type UserRegisterJSON struct {
+	Name                 string `json:"name"`
+	Email                string `json:"email"`
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"confirmPassword"`
+}
+
 // Create wraps up the pattern of encrypting the password and
 // running validations. Useful when writing tests.
 func (u *User) Create(tx *pop.Connection) (*validate.Errors, error) {

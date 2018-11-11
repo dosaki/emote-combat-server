@@ -8,7 +8,6 @@ import (
 	contenttype "github.com/gobuffalo/mw-contenttype"
 	forcessl "github.com/gobuffalo/mw-forcessl"
 	paramlogger "github.com/gobuffalo/mw-paramlogger"
-	tokenauth "github.com/gobuffalo/mw-tokenauth"
 	"github.com/gobuffalo/x/sessions"
 	"github.com/rs/cors"
 	"github.com/unrolled/secure"
@@ -38,7 +37,7 @@ func App() *buffalo.App {
 			Env:          ENV,
 			SessionStore: sessions.Null{},
 			PreWares: []buffalo.PreWare{
-				cors.Default().Handler,
+				cors.AllowAll().Handler,
 			},
 			SessionName: "_emote_combat_server_session",
 		})
@@ -58,44 +57,40 @@ func App() *buffalo.App {
 		app.Use(popmw.Transaction(models.DB))
 
 		app.GET("/", HomeHandler)
+		app.POST("/auth/token", GenerateToken)
 
-		app.Use(tokenauth.New(tokenauth.Options{}))
+		player := app.Group("/player")
+		player.Use(RestrictedHandlerMiddleware)
 
-		app.Use(SetCurrentUser)
-		app.Use(Authorize)
+		player.GET("/{id}", UserList)    // Read
+		player.PUT("/{id}", UserUpdate)  // Update
+		app.POST("/player", UsersCreate) // New
 
-		app.GET("/player/{id}", UserList)   // Read
-		app.POST("/player", UsersCreate)    // New
-		app.PUT("/player/{id}", UserUpdate) // Update
+		app.GET("/characters", CharacterList)     // List all
+		app.GET("/character/{id}", CharacterList) // Read
 
-		app.POST("/signin", AuthCreate)
-		app.DELETE("/signout", AuthDestroy)
+		player.GET("/{player_id}/characters", CharacterList)              // Read
+		player.GET("/{player_id}/character/{id}", CharacterList)          // Read
+		player.POST("/{player_id}/character", CharacterCreate)            // New
+		player.PUT("/{player_id}/character/{id}", CharacterUpdate)        // Update
+		player.DELETE("/{player_id}/character/{id}", CharacterDelete)     // Delete
+		player.GET("/{player_id}/character/{id}/delete", CharacterDelete) // Delete
 
-		app.Middleware.Skip(Authorize, HomeHandler, UsersCreate, AuthCreate)
-
-		app.GET("/characters", CharacterList)                                 // List all
-		app.GET("/character/{id}", CharacterList)                             // Read
-		app.GET("/player/{player_id}/characters", CharacterList)              // Read
-		app.GET("/player/{player_id}/character/{id}", CharacterList)          // Read
-		app.POST("/player/{player_id}/character", CharacterCreate)            // New
-		app.PUT("/player/{player_id}/character/{id}", CharacterUpdate)        // Update
-		app.DELETE("/player/{player_id}/character/{id}", CharacterDelete)     // Delete
-		app.GET("/player/{player_id}/character/{id}/delete", CharacterDelete) // Delete
+		player.GET("/{player_id}/character/{character_id}/sheet_entries", SheetEntryList)         // List all
+		player.GET("/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryList)      // Read
+		player.POST("/{player_id}/character/{character_id}/sheet_entry", SheetEntryCreate)        // New
+		player.POST("/{player_id}/character/{character_id}/sheet_entries", SheetEntriesCreate)    // New
+		player.PUT("/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryUpdate)    // Update
+		player.DELETE("/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryDelete) // Delete
 
 		app.GET("/skills", SkillList)                          // List all
 		app.GET("/skill/{id}", SkillList)                      // Read
 		app.GET("/skill/{parent_id}/subskills", SkillList)     // Read all subskills
-		app.GET("/skill/{parent_id}/subskill/{id}", SkillList) // Read all subskills
+		app.GET("/skill/{parent_id}/subskill/{id}", SkillList) // Read subskill
 		app.POST("/skill", SkillCreate)                        // New
 		app.PUT("/skill/{id}", SkillUpdate)                    // Update
 		app.DELETE("/skill/{id}", SkillDelete)                 // Delete
 
-		app.GET("/player/{player_id}/character/{character_id}/sheet_entries", SheetEntryList)         // List all
-		app.GET("/player/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryList)      // Read
-		app.POST("/player/{player_id}/character/{character_id}/sheet_entry", SheetEntryCreate)        // New
-		app.POST("/player/{player_id}/character/{character_id}/sheet_entries", SheetEntriesCreate)    // New
-		app.PUT("/player/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryUpdate)    // Update
-		app.DELETE("/player/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryDelete) // Delete
 	}
 
 	return app

@@ -2,9 +2,12 @@ package actions
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/dosaki/emote_combat_server/helpers"
 	"github.com/dosaki/emote_combat_server/models"
+	"github.com/dosaki/emote_combat_server/services"
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
 	"github.com/pkg/errors"
@@ -21,12 +24,26 @@ func getUserBody(c buffalo.Context) models.User {
 	return body
 }
 
+func getUserAuthBody(c buffalo.Context) models.UserRegisterJSON {
+	request := c.Request()
+	decoder := json.NewDecoder(request.Body)
+	body := models.UserRegisterJSON{}
+	err := decoder.Decode(&body)
+	if err != nil {
+		panic(err)
+	}
+	return body
+}
+
 // UsersCreate registers a new user with the application.
 func UsersCreate(c buffalo.Context) error {
+	userRegister := getUserAuthBody(c)
 	u := &models.User{}
-	if err := c.Bind(u); err != nil {
-		return errors.WithStack(err)
-	}
+
+	u.Name = strings.TrimSpace(userRegister.Name)
+	u.Email = strings.ToLower(strings.TrimSpace(userRegister.Email))
+	u.Password = userRegister.Password
+	u.PasswordConfirmation = userRegister.PasswordConfirmation
 
 	tx := c.Value("tx").(*pop.Connection)
 	verrs, err := u.Create(tx)
@@ -35,12 +52,9 @@ func UsersCreate(c buffalo.Context) error {
 	}
 
 	if verrs.HasAny() {
-		c.Set("user", u)
-		c.Set("errors", verrs)
+		fmt.Println(verrs)
 		return c.Render(400, r.JSON(map[string]string{}))
 	}
-
-	c.Session().Set("current_user_id", u.ID)
 
 	return c.Render(201, r.JSON(u))
 }
@@ -52,12 +66,8 @@ func UserUpdate(c buffalo.Context) error {
 		return c.Render(400, r.JSON(map[string]string{"message": "No ID provided."}))
 	}
 
-	users := []models.User{}
-	err := models.DB.Where("id in (?)", uuid).All(&users)
+	user, err := services.GetUserByUUID(uuid)
 	if err != nil {
-		return c.Render(500, r.JSON(map[string]string{"message": "Problem getting player."}))
-	}
-	if len(users) == 0 {
 		return c.Render(404, r.JSON(map[string]string{"message": "Player not found."}))
 	}
 
@@ -67,7 +77,6 @@ func UserUpdate(c buffalo.Context) error {
 	}
 
 	body := getUserBody(c)
-	user := users[0]
 	user.Name = body.Name
 	user.Email = body.Name
 
@@ -81,22 +90,20 @@ func UserUpdate(c buffalo.Context) error {
 // UserList default implementation.
 func UserList(c buffalo.Context) error {
 	uuid, perr := helpers.Param(c, "id")
-	users := []models.User{}
 	var err error
 
 	if perr != nil {
+		users := []models.User{}
 		err = models.DB.All(&users)
 		if err == nil {
 			return c.Render(200, r.JSON(users))
 		}
 	} else {
-		err = models.DB.Where("id in (?)", uuid).All(&users)
-		if len(users) == 0 {
-			return c.Render(404, r.JSON(map[string]string{"message": "Player not found."}))
-		}
+		user, err := services.GetUserByUUID(uuid)
 		if err == nil {
-			return c.Render(200, r.JSON(users[0]))
+			return c.Render(200, r.JSON(user))
 		}
+		return c.Render(404, r.JSON(map[string]string{"message": "Player not found."}))
 	}
 
 	return c.Render(500, r.JSON(map[string]string{"message": "Problem getting player(s)."}))
