@@ -57,10 +57,16 @@ func App() *buffalo.App {
 		app.Use(popmw.Transaction(models.DB))
 
 		app.GET("/", HomeHandler)
+
 		app.POST("/auth/token", GenerateToken)
 
+		auth := app.Group("/auth")
+		auth.Use(RestrictedHandlerMiddleware)
+
+		auth.GET("/invalidate", DestroyToken)
+
 		player := app.Group("/player")
-		player.Use(RestrictedHandlerMiddleware)
+		player.Use(PlayerRestrictedHandlerMiddleware)
 
 		player.GET("/{player_id}", UserList)   // Read
 		player.PUT("/{player_id}", UserUpdate) // Update
@@ -76,11 +82,13 @@ func App() *buffalo.App {
 		player.DELETE("/{player_id}/character/{id}", CharacterDelete)     // Delete
 		player.GET("/{player_id}/character/{id}/delete", CharacterDelete) // Delete
 
+		app.GET("/character/{character_id}/sheet_entries", SheetEntryList)                        // Read
 		player.GET("/{player_id}/character/{character_id}/sheet_entries", SheetEntryList)         // List all
 		player.GET("/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryList)      // Read
 		player.POST("/{player_id}/character/{character_id}/sheet_entry", SheetEntryCreate)        // New
 		player.POST("/{player_id}/character/{character_id}/sheet_entries", SheetEntriesCreate)    // New
 		player.PUT("/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryUpdate)    // Update
+		player.PUT("/{player_id}/character/{character_id}/sheet_entries", SheetEntriesUpdate)     // New
 		player.DELETE("/{player_id}/character/{character_id}/sheet_entry/{id}", SheetEntryDelete) // Delete
 
 		app.GET("/skills", SkillList)                          // List all
