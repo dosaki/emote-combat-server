@@ -17,8 +17,8 @@ type Character struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	Name      string    `json:"name" db:"name"`
 	PlayerID  uuid.UUID `json:"player_id" db:"player_id"`
-	Race      uuid.UUID `json:"race" db:"race"`
-	Gender    uuid.UUID `json:"gender" db:"gender"`
+	Race      string    `json:"race" db:"race"`
+	Gender    string    `json:"gender" db:"gender"`
 }
 
 // String is not required by pop and may be deleted

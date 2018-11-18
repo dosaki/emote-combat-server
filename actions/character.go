@@ -44,6 +44,8 @@ func CharacterCreate(c buffalo.Context) error {
 	character := models.Character{}
 	character.Name = body.Name
 	character.PlayerID = playerUUID
+	character.Gender = body.Gender
+	character.Race = body.Race
 
 	users := []models.User{}
 	err := models.DB.Where("id = ?", body.PlayerID).All(&users)
@@ -106,6 +108,8 @@ func CharacterUpdate(c buffalo.Context) error {
 	character := characters[0]
 	character.Name = body.Name
 	character.PlayerID = body.PlayerID
+	character.Gender = body.Gender
+	character.Race = body.Race
 
 	users := []models.User{}
 	aperr := models.DB.Where("id = ?", body.PlayerID).All(&users)
@@ -188,6 +192,6 @@ func CharacterList(c buffalo.Context) error {
 			return c.Render(200, r.JSON(characters[0]))
 		}
 	}
-
+	fmt.Println(err)
 	return c.Render(500, r.JSON(map[string]string{"message": "Problem getting character(s)."}))
 }
