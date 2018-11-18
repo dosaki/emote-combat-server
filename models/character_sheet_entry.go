@@ -10,6 +10,7 @@ import (
 	"github.com/gobuffalo/validate/validators"
 )
 
+// CharacterSheetEntry - An entry of a character sheet: basically a skill and it's value
 type CharacterSheetEntry struct {
 	ID          uuid.UUID `json:"id" db:"id"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`

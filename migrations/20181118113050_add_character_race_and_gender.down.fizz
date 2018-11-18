@@ -1,0 +1,2 @@
+add_column("characters", "gender", "varchar(6)")
+add_column("characters", "race", "varchar(255)")

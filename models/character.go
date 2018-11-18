@@ -10,12 +10,15 @@ import (
 	"github.com/gobuffalo/validate/validators"
 )
 
+// Character - a character
 type Character struct {
 	ID        uuid.UUID `json:"id" db:"id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	Name      string    `json:"name" db:"name"`
 	PlayerID  uuid.UUID `json:"player_id" db:"player_id"`
+	Race      uuid.UUID `json:"race" db:"race"`
+	Gender    uuid.UUID `json:"gender" db:"gender"`
 }
 
 // String is not required by pop and may be deleted

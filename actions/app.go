@@ -6,11 +6,9 @@ import (
 	"github.com/gobuffalo/buffalo-pop/pop/popmw"
 	"github.com/gobuffalo/envy"
 	contenttype "github.com/gobuffalo/mw-contenttype"
-	forcessl "github.com/gobuffalo/mw-forcessl"
 	paramlogger "github.com/gobuffalo/mw-paramlogger"
 	"github.com/gobuffalo/x/sessions"
 	"github.com/rs/cors"
-	"github.com/unrolled/secure"
 )
 
 // ENV is used to help switch settings based on where the
@@ -43,7 +41,7 @@ func App() *buffalo.App {
 		})
 
 		// Automatically redirect to SSL
-		app.Use(forceSSL())
+		// app.Use(forceSSL())
 
 		// Log request parameters (filters apply).
 		app.Use(paramlogger.ParameterLogger)
@@ -109,9 +107,9 @@ func App() *buffalo.App {
 // This middleware does **not** enable SSL. for your application. To do that
 // we recommend using a proxy: https://gobuffalo.io/en/docs/proxy
 // for more information: https://github.com/unrolled/secure/
-func forceSSL() buffalo.MiddlewareFunc {
-	return forcessl.Middleware(secure.Options{
-		SSLRedirect:     ENV == "production",
-		SSLProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
-	})
-}
+// func forceSSL() buffalo.MiddlewareFunc {
+// 	return forcessl.Middleware(secure.Options{
+// 		SSLRedirect:     ENV == "production",
+// 		SSLProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
+// 	})
+// }

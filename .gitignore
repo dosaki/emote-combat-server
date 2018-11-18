@@ -15,3 +15,4 @@ emote_combat_server
 .env
 *.key
 *.key.pub
+Dockerfile

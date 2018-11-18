@@ -1,0 +1,2 @@
+drop_column("characters", "race")
+drop_column("characters", "gender")
