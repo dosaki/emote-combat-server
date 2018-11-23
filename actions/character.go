@@ -44,8 +44,9 @@ func CharacterCreate(c buffalo.Context) error {
 	character := models.Character{}
 	character.Name = body.Name
 	character.PlayerID = playerUUID
-	character.Gender = body.Gender
 	character.Race = body.Race
+	character.Gender = body.Gender
+	character.IngameName = body.IngameName
 
 	users := []models.User{}
 	err := models.DB.Where("id = ?", body.PlayerID).All(&users)
@@ -108,8 +109,9 @@ func CharacterUpdate(c buffalo.Context) error {
 	character := characters[0]
 	character.Name = body.Name
 	character.PlayerID = body.PlayerID
-	character.Gender = body.Gender
 	character.Race = body.Race
+	character.Gender = body.Gender
+	character.IngameName = body.IngameName
 
 	users := []models.User{}
 	aperr := models.DB.Where("id = ?", body.PlayerID).All(&users)

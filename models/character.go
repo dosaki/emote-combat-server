@@ -12,13 +12,14 @@ import (
 
 // Character - a character
 type Character struct {
-	ID        uuid.UUID `json:"id" db:"id"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
-	Name      string    `json:"name" db:"name"`
-	PlayerID  uuid.UUID `json:"player_id" db:"player_id"`
-	Race      string    `json:"race" db:"race"`
-	Gender    string    `json:"gender" db:"gender"`
+	ID         uuid.UUID `json:"id" db:"id"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
+	Name       string    `json:"name" db:"name"`
+	PlayerID   uuid.UUID `json:"player_id" db:"player_id"`
+	Race       string    `json:"race" db:"race"`
+	Gender     string    `json:"gender" db:"gender"`
+	IngameName string    `json:"ingame_name" db:"ingame_name"`
 }
 
 // String is not required by pop and may be deleted
