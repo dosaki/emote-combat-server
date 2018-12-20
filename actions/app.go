@@ -72,6 +72,7 @@ func App() *buffalo.App {
 
 		app.GET("/characters", CharacterList)     // List all
 		app.GET("/character/{id}", CharacterList) // Read
+		app.GET("/character/{server}/{name}", CharacterListByNameAndServer) // Read
 
 		player.GET("/{player_id}/characters", CharacterList)              // Read
 		player.GET("/{player_id}/character/{id}", CharacterList)          // Read

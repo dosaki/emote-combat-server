@@ -1,1 +1,2 @@
 add_column("characters", "ingame_name", "varchar(255)")
+add_column("characters", "server", "varchar(255)")

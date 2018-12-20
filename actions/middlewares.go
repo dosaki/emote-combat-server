@@ -2,9 +2,10 @@ package actions
 
 import (
 	"fmt"
+	"github.com/dosaki/emote_combat_server/messages"
 	"net/http"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/dosaki/emote_combat_server/helpers"
 	"github.com/dosaki/emote_combat_server/services"
 	"github.com/gobuffalo/buffalo"
@@ -13,16 +14,16 @@ import (
 func getToken(c buffalo.Context) (*jwt.Token, error) {
 	tokenString := c.Request().Header.Get("Authorization")
 	if len(tokenString) == 0 {
-		return nil, c.Error(http.StatusUnauthorized, fmt.Errorf("No token set in headers"))
+		return nil, c.Error(http.StatusUnauthorized, fmt.Errorf(messages.NoTokenError))
 	}
 
 	if !services.TokenIsValid(tokenString) {
-		return nil, c.Error(http.StatusUnauthorized, fmt.Errorf("Invalid token pair"))
+		return nil, c.Error(http.StatusUnauthorized, fmt.Errorf(messages.InvalidTokenError))
 	}
 
 	token, err := jwt.Parse(tokenString, services.ParseToken)
 	if err != nil {
-		return nil, c.Error(http.StatusUnauthorized, fmt.Errorf("Invalid user/token pair"))
+		return nil, c.Error(http.StatusUnauthorized, fmt.Errorf(messages.InvalidUserTokenError))
 	}
 	return token, nil
 }
@@ -60,7 +61,7 @@ func PlayerRestrictedHandlerMiddleware(next buffalo.Handler) buffalo.Handler {
 			return next(c)
 		}
 
-		return c.Error(http.StatusUnauthorized, fmt.Errorf("Invalid token or unauthorized action"))
+		return c.Error(http.StatusUnauthorized, fmt.Errorf(messages.InvalidTokenOrUnauthorizedError))
 	}
 }
 
@@ -76,6 +77,6 @@ func RestrictedHandlerMiddleware(next buffalo.Handler) buffalo.Handler {
 			return next(c)
 		}
 
-		return c.Error(http.StatusUnauthorized, fmt.Errorf("Invalid token or unauthorized action"))
+		return c.Error(http.StatusUnauthorized, fmt.Errorf(messages.InvalidTokenOrUnauthorizedError))
 	}
 }

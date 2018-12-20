@@ -3,6 +3,7 @@ package actions
 import (
 	"encoding/json"
 	"errors"
+	"github.com/dosaki/emote_combat_server/messages"
 
 	"github.com/dosaki/emote_combat_server/helpers"
 	"github.com/dosaki/emote_combat_server/models"
@@ -25,7 +26,7 @@ func getSheetEntryBody(c buffalo.Context) models.CharacterSheetEntry {
 func getSheetEntriesBody(c buffalo.Context) []models.CharacterSheetEntry {
 	request := c.Request()
 	decoder := json.NewDecoder(request.Body)
-	body := []models.CharacterSheetEntry{}
+	var body []models.CharacterSheetEntry
 	err := decoder.Decode(&body)
 	if err != nil {
 		panic(err)
@@ -36,12 +37,12 @@ func getSheetEntriesBody(c buffalo.Context) []models.CharacterSheetEntry {
 func createOne(c buffalo.Context, body models.CharacterSheetEntry, characterID string) (models.CharacterSheetEntry, error) {
 	tx, ok := c.Value("tx").(*pop.Connection)
 	if !ok {
-		panic("Unable to get connection")
+		panic(messages.NoConnectionError)
 	}
 
 	characterUUID, puuiderr := UUID.FromString(characterID)
 	if puuiderr != nil {
-		return models.CharacterSheetEntry{}, errors.New("bad character uuid")
+		return models.CharacterSheetEntry{}, errors.New(messages.BadUUIDError)
 	}
 
 	sheetEntry := models.CharacterSheetEntry{}
@@ -53,27 +54,27 @@ func createOne(c buffalo.Context, body models.CharacterSheetEntry, characterID s
 	if tx.Create(&sheetEntry) == nil {
 		return sheetEntry, nil
 	}
-	return models.CharacterSheetEntry{}, errors.New("unknown")
+	return models.CharacterSheetEntry{}, errors.New(messages.UnknownError)
 }
 
 func updateOne(c buffalo.Context, body models.CharacterSheetEntry, characterID string, uuid string) (models.CharacterSheetEntry, error) {
 	tx, ok := c.Value("tx").(*pop.Connection)
 	if !ok {
-		panic("Unable to get connection")
+		panic(messages.NoConnectionError)
 	}
 
 	characterUUID, puuiderr := UUID.FromString(characterID)
 	if puuiderr != nil {
-		return models.CharacterSheetEntry{}, errors.New("Bad character UUID")
+		return models.CharacterSheetEntry{}, errors.New(messages.BadUUIDError)
 	}
 
-	sheetEntries := []models.CharacterSheetEntry{}
+	var sheetEntries []models.CharacterSheetEntry
 	err := models.DB.Where("character_id = ?", characterID).Where("id = ?", uuid).All(&sheetEntries)
 	if err != nil {
-		return models.CharacterSheetEntry{}, errors.New("Problem getting sheet entry")
+		return models.CharacterSheetEntry{}, errors.New(messages.ProblemGettingSheetEntryError)
 	}
 	if len(sheetEntries) == 0 {
-		return models.CharacterSheetEntry{}, errors.New("Sheet entry not found")
+		return models.CharacterSheetEntry{}, errors.New(messages.SheetNotFoundError)
 	}
 
 	sheetEntry := sheetEntries[0]
@@ -85,25 +86,25 @@ func updateOne(c buffalo.Context, body models.CharacterSheetEntry, characterID s
 	if tx.Save(&sheetEntry) == nil {
 		return sheetEntry, nil
 	}
-	return sheetEntry, errors.New("unknown")
+	return sheetEntry, errors.New(messages.UnknownError)
 }
 
 // SheetEntryCreate default implementation.
 func SheetEntryCreate(c buffalo.Context) error {
 	playerID, pierr := helpers.Param(c, "player_id")
 	if pierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No player ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoPlayerIDError}))
 	}
 
 	characterID, cierr := helpers.Param(c, "character_id")
 	if cierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No character ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoCharacterIDError}))
 	}
 
-	characters := []models.Character{}
+	var characters []models.Character
 	cerr := models.DB.Where("player_id = ?", playerID).Where("id = ?", characterID).All(&characters)
 	if cerr != nil || len(characters) == 0 {
-		return c.Render(404, r.JSON(map[string]string{"message": "Unable to find that player's character."}))
+		return c.Render(404, r.JSON(map[string]string{"message": messages.PlayerCharacterNotFoundError}))
 	}
 
 	body := getSheetEntryBody(c)
@@ -118,22 +119,22 @@ func SheetEntryCreate(c buffalo.Context) error {
 func SheetEntriesCreate(c buffalo.Context) error {
 	playerID, pierr := helpers.Param(c, "player_id")
 	if pierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No player ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoPlayerIDError}))
 	}
 
 	characterID, cierr := helpers.Param(c, "character_id")
 	if cierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No character ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoCharacterIDError}))
 	}
 
-	characters := []models.Character{}
+	var characters []models.Character
 	cerr := models.DB.Where("player_id = ?", playerID).Where("id = ?", characterID).All(&characters)
 	if cerr != nil || len(characters) == 0 {
-		return c.Render(404, r.JSON(map[string]string{"message": "Unable to find that player's character."}))
+		return c.Render(404, r.JSON(map[string]string{"message": messages.PlayerCharacterNotFoundError}))
 	}
 
 	bodies := getSheetEntriesBody(c)
-	sheetEntries := []models.CharacterSheetEntry{}
+	var sheetEntries []models.CharacterSheetEntry
 	for _, body := range bodies {
 		sheetEntry, err := createOne(c, body, characterID)
 		if err != nil {
@@ -148,23 +149,23 @@ func SheetEntriesCreate(c buffalo.Context) error {
 func SheetEntryUpdate(c buffalo.Context) error {
 	playerID, pierr := helpers.Param(c, "player_id")
 	if pierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No player ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoPlayerIDError}))
 	}
 
 	characterID, cierr := helpers.Param(c, "character_id")
 	if cierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No character ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoCharacterIDError}))
 	}
 
-	characters := []models.Character{}
+	var characters []models.Character
 	cerr := models.DB.Where("player_id = ?", playerID).Where("id = ?", characterID).All(&characters)
 	if cerr != nil || len(characters) == 0 {
-		return c.Render(404, r.JSON(map[string]string{"message": "Unable to find that player's character."}))
+		return c.Render(404, r.JSON(map[string]string{"message": messages.PlayerCharacterNotFoundError}))
 	}
 
 	uuid, perr := helpers.Param(c, "id")
 	if perr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoSheetIDError}))
 	}
 
 	sheetEntry, seError := updateOne(c, getSheetEntryBody(c), characterID, uuid)
@@ -173,29 +174,29 @@ func SheetEntryUpdate(c buffalo.Context) error {
 		return c.Render(200, r.JSON(sheetEntry))
 	}
 
-	return c.Render(500, r.JSON(map[string]string{"message": "Unknown error."}))
+	return c.Render(500, r.JSON(map[string]string{"message": messages.UnknownError}))
 }
 
 // SheetEntriesUpdate default implementation.
 func SheetEntriesUpdate(c buffalo.Context) error {
 	playerID, pierr := helpers.Param(c, "player_id")
 	if pierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No player ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoPlayerIDError}))
 	}
 
 	characterID, cierr := helpers.Param(c, "character_id")
 	if cierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No character ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoCharacterIDError}))
 	}
 
-	characters := []models.Character{}
+	var characters []models.Character
 	cerr := models.DB.Where("player_id = ?", playerID).Where("id = ?", characterID).All(&characters)
 	if cerr != nil || len(characters) == 0 {
-		return c.Render(404, r.JSON(map[string]string{"message": "Unable to find that player's character."}))
+		return c.Render(404, r.JSON(map[string]string{"message": messages.PlayerCharacterNotFoundError}))
 	}
 
 	bodies := getSheetEntriesBody(c)
-	sheetEntries := []models.CharacterSheetEntry{}
+	var sheetEntries []models.CharacterSheetEntry
 	for _, body := range bodies {
 		sheetEntry, err := updateOne(c, body, characterID, body.ID.String())
 		if err != nil {
@@ -210,37 +211,37 @@ func SheetEntriesUpdate(c buffalo.Context) error {
 func SheetEntryDelete(c buffalo.Context) error {
 	playerID, pierr := helpers.Param(c, "player_id")
 	if pierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No player ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoPlayerIDError}))
 	}
 
 	characterID, cierr := helpers.Param(c, "character_id")
 	if cierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No character ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoCharacterIDError}))
 	}
 
-	characters := []models.Character{}
+	var characters []models.Character
 	cerr := models.DB.Where("player_id = ?", playerID).Where("id = ?", characterID).All(&characters)
 	if cerr != nil || len(characters) == 0 {
-		return c.Render(404, r.JSON(map[string]string{"message": "Unable to find that player's character."}))
+		return c.Render(404, r.JSON(map[string]string{"message": messages.PlayerCharacterNotFoundError}))
 	}
 
 	uuid, perr := helpers.Param(c, "id")
 	if perr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoSheetIDError}))
 	}
 
-	sheetEntries := []models.CharacterSheetEntry{}
+	var sheetEntries []models.CharacterSheetEntry
 	err := models.DB.Where("character_id = ?", characterID).Where("id = ?", uuid).All(&sheetEntries)
 	if err != nil {
-		return c.Render(500, r.JSON(map[string]string{"message": "Problem getting sheet entry."}))
+		return c.Render(500, r.JSON(map[string]string{"message": messages.ProblemGettingSheetEntryError}))
 	}
 	if len(sheetEntries) == 0 {
-		return c.Render(404, r.JSON(map[string]string{"message": "Sheet entry not found."}))
+		return c.Render(404, r.JSON(map[string]string{"message": messages.SheetNotFoundError}))
 	}
 
 	tx, ok := c.Value("tx").(*pop.Connection)
 	if !ok {
-		panic("Unable to get connection")
+		panic(messages.NoConnectionError)
 	}
 
 	sheetEntry := sheetEntries[0]
@@ -249,28 +250,28 @@ func SheetEntryDelete(c buffalo.Context) error {
 		return c.Render(201, r.JSON(map[string]string{}))
 	}
 
-	return c.Render(500, r.JSON(map[string]string{"message": "Unknown error."}))
+	return c.Render(500, r.JSON(map[string]string{"message": messages.UnknownError}))
 }
 
 // SheetEntryList default implementation.
 func SheetEntryList(c buffalo.Context) error {
 	characterID, cierr := helpers.Param(c, "character_id")
 	if cierr != nil {
-		return c.Render(400, r.JSON(map[string]string{"message": "No character ID provided."}))
+		return c.Render(400, r.JSON(map[string]string{"message": messages.NoCharacterIDError}))
 	}
 
 	playerID, pierr := helpers.Param(c, "player_id")
 	if pierr == nil {
-		characters := []models.Character{}
+		var characters []models.Character
 		cerr := models.DB.Where("player_id = ?", playerID).Where("id = ?", characterID).All(&characters)
 		if cerr != nil || len(characters) == 0 {
-			return c.Render(404, r.JSON(map[string]string{"message": "Unable to find that player's character."}))
+			return c.Render(404, r.JSON(map[string]string{"message": messages.PlayerCharacterNotFoundError}))
 		}
 	}
 
 	var query *pop.Query
 	var err error
-	sheetEntries := []models.CharacterSheetEntry{}
+	var sheetEntries []models.CharacterSheetEntry
 	query = models.DB.Where("character_id = ?", characterID)
 
 	uuid, perr := helpers.Param(c, "id")
@@ -282,12 +283,12 @@ func SheetEntryList(c buffalo.Context) error {
 	} else {
 		err = query.Where("id = ?", uuid).All(&sheetEntries)
 		if len(sheetEntries) == 0 {
-			return c.Render(404, r.JSON(map[string]string{"message": "Sheet entry not found."}))
+			return c.Render(404, r.JSON(map[string]string{"message": messages.SheetNotFoundError}))
 		}
 		if err == nil {
 			return c.Render(200, r.JSON(sheetEntries[0]))
 		}
 	}
 
-	return c.Render(500, r.JSON(map[string]string{"message": "Problem getting sheet entry(s)."}))
+	return c.Render(500, r.JSON(map[string]string{"message": messages.ProblemGettingSheetEntryError}))
 }

@@ -20,6 +20,7 @@ type Character struct {
 	Race       string    `json:"race" db:"race"`
 	Gender     string    `json:"gender" db:"gender"`
 	IngameName string    `json:"ingame_name" db:"ingame_name"`
+	Server     string    `json:"server" db:"server"`
 }
 
 // String is not required by pop and may be deleted

@@ -1,1 +1,2 @@
 drop_column("characters", "ingame_name")
+drop_column("characters", "server")
